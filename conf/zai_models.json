@@ -15,7 +15,7 @@
         "glm4.6",
         "glm-4.6"
       ],
-      "intelligence_score": 10,
+      "intelligence_score": 12,
       "description": "GLM-4.6 (128K context) - Z.AI reasoning and coding model",
       "context_window": 128000,
       "max_output_tokens": 8192,
