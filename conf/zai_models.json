@@ -1,0 +1,32 @@
+{
+  "_README": {
+    "description": "Model metadata for Z.AI GLM API access.",
+    "documentation": "https://github.com/BeehiveInnovations/pal-mcp-server/blob/main/docs/custom_models.md",
+    "usage": "Models listed here are exposed directly through the Z.AI provider. Aliases are case-insensitive.",
+    "field_notes": "Matches providers/shared/model_capabilities.py."
+  },
+  "models": [
+    {
+      "model_name": "glm-4.6",
+      "friendly_name": "Z.AI (GLM-4.6)",
+      "aliases": [
+        "glm",
+        "glm-4",
+        "glm4.6",
+        "glm-4.6"
+      ],
+      "intelligence_score": 10,
+      "description": "GLM-4.6 (128K context) - Z.AI reasoning and coding model",
+      "context_window": 128000,
+      "max_output_tokens": 8192,
+      "supports_extended_thinking": true,
+      "supports_system_prompts": true,
+      "supports_streaming": true,
+      "supports_function_calling": true,
+      "supports_json_mode": true,
+      "supports_images": true,
+      "supports_temperature": true,
+      "max_image_size_mb": 10.0
+    }
+  ]
+}

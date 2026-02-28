@@ -105,3 +105,4 @@ class TestServerTools:
         assert "## Server Information" in content
         assert "## Configuration" in content
         assert "Current Version" in content
+        assert "Z.AI" in content
