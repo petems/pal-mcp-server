@@ -3,10 +3,52 @@
 import os
 from unittest.mock import MagicMock, patch
 
+import openai
 import pytest
 
 from providers.shared import ProviderType
 from providers.zai import ZAIModelProvider
+
+# ---------------------------------------------------------------------------
+# Integration smoke tests (require ZAI_API_KEY or exercise auth-failure path)
+# ---------------------------------------------------------------------------
+
+
+class TestZAIIntegration:
+    """Integration tests for Z.AI provider -- real API calls."""
+
+    @pytest.mark.integration
+    def test_zai_auth_failure(self):
+        """An invalid API key should raise on generate_content."""
+        provider = ZAIModelProvider("invalid-test-key-00000")
+        with pytest.raises((RuntimeError, openai.AuthenticationError)):
+            provider.generate_content(
+                prompt="Say hello.",
+                model_name="glm-4.6",
+                temperature=0.3,
+            )
+
+    @pytest.mark.integration
+    def test_zai_basic_completion(self):
+        """Basic completion smoke test -- skipped when ZAI_API_KEY is absent."""
+        api_key = os.getenv("ZAI_API_KEY")
+        if not api_key:
+            pytest.skip("ZAI_API_KEY not set")
+
+        provider = ZAIModelProvider(api_key)
+        result = provider.generate_content(
+            prompt="Respond with exactly the word 'hello'.",
+            model_name="glm-4.6",
+            temperature=0.0,
+        )
+        assert result is not None
+        assert result.content is not None
+        assert len(result.content.strip()) > 0
+
+
+# ---------------------------------------------------------------------------
+# Unit tests
+# ---------------------------------------------------------------------------
 
 
 class TestZAIProvider:
@@ -29,7 +71,7 @@ class TestZAIProvider:
         provider = ZAIModelProvider("test-key")
         assert provider.api_key == "test-key"
         assert provider.get_provider_type() == ProviderType.ZAI
-        assert provider.base_url == "https://api.z.ai/api/coding/paas/v4"
+        assert provider.base_url == "https://api.z.ai/api/paas/v4"
 
     def test_initialization_with_custom_url(self):
         """Test provider initialization with custom base URL."""
@@ -70,14 +112,14 @@ class TestZAIProvider:
         assert capabilities.model_name == "glm-4.6"
         assert capabilities.friendly_name == "Z.AI (GLM-4.6)"
         assert capabilities.provider == ProviderType.ZAI
-        assert capabilities.context_window == 128_000
-        assert capabilities.max_output_tokens == 8_192
+        assert capabilities.context_window == 200_000
+        assert capabilities.max_output_tokens == 128_000
         assert capabilities.supports_extended_thinking is True
         assert capabilities.supports_system_prompts is True
         assert capabilities.supports_streaming is True
         assert capabilities.supports_function_calling is True
         assert capabilities.supports_json_mode is True
-        assert capabilities.supports_images is True
+        assert capabilities.supports_images is False
         assert capabilities.supports_temperature is True
 
     def test_get_capabilities_with_shorthand(self):
@@ -87,7 +129,7 @@ class TestZAIProvider:
         for alias in ["glm", "glm-4", "glm4.6"]:
             capabilities = provider.get_capabilities(alias)
             assert capabilities.model_name == "glm-4.6"
-            assert capabilities.context_window == 128_000
+            assert capabilities.context_window == 200_000
 
     def test_invalid_model_capabilities(self):
         """Unsupported models should raise."""
@@ -132,7 +174,7 @@ class TestZAIProvider:
         assert hasattr(glm_config, "context_window")
         assert hasattr(glm_config, "supports_extended_thinking")
         assert hasattr(glm_config, "aliases")
-        assert glm_config.context_window == 128_000
+        assert glm_config.context_window == 200_000
         assert glm_config.supports_extended_thinking is True
 
         # Check aliases are correctly structured

@@ -27,7 +27,7 @@ class ZAIModelProvider(RegistryBackedProviderMixin, OpenAICompatibleProvider):
 
     def __init__(self, api_key: str, **kwargs):
         """Initialize Z.AI provider with API key."""
-        kwargs.setdefault("base_url", "https://api.z.ai/api/coding/paas/v4")
+        kwargs.setdefault("base_url", "https://api.z.ai/api/paas/v4")
         self._ensure_registry()
         super().__init__(api_key, **kwargs)
         self._invalidate_capability_cache()
