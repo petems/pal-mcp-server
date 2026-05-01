@@ -100,3 +100,23 @@ Install GitHub CLI: `brew install gh` (macOS) or visit https://cli.github.com fo
 
 ## Security & Configuration Tips
 Store API keys and provider URLs in `.env` or your MCP client config; never commit secrets or generated log artifacts. Use `run-server.sh` to regenerate environments and verify connectivity after dependency changes. When adding providers or tools, sanitize prompts and responses, document required environment variables in `docs/`, and update `claude_config_example.json` if new capabilities ship by default.
+
+## Cursor Cloud specific instructions
+
+### Environment overview
+- **Runtime**: Python 3.12 on Ubuntu; the `python3.12-venv` system package is required to create the virtualenv.
+- **Virtual environment**: `.pal_venv/` — activate with `source .pal_venv/bin/activate`.
+- **Dependencies**: `pip install -r requirements.txt -r requirements-dev.txt` inside the venv.
+- **Config**: Copy `.env.example` to `.env` if `.env` does not exist. At least one AI provider API key must be set for the server to start; unit tests run without any keys.
+
+### Running quality checks and tests
+- `./code_quality_checks.sh` runs ruff (with auto-fix), black, isort, and the full unit test suite. It expects `.pal_venv/` to exist.
+- Unit tests only (no API keys needed): `.pal_venv/bin/python -m pytest tests/ -v -m "not integration"`
+- Integration/simulator tests require a configured AI provider; see `CLAUDE.md` for details.
+
+### MCP server startup
+The server runs on stdio (JSON-RPC) and is normally launched by an MCP client, not manually. To verify it can initialize: `cd /workspace && .pal_venv/bin/python -c "import server; print(server.server.name)"`. A full `python server.py` will fail with a `ValueError` if no API key is configured — this is expected behavior, not a bug.
+
+### Gotchas
+- `black --check` may report files needing reformatting even on a clean checkout; `code_quality_checks.sh` auto-fixes them, so always run the script rather than check-only.
+- The `logs/` directory is created at runtime; do not commit its contents.
