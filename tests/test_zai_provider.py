@@ -214,9 +214,13 @@ class TestZAIProvider:
         """Alias allow-list entries should resolve to canonical model."""
         import utils.model_restrictions
         from providers.registry import ModelProviderRegistry
+        from providers.shared import ProviderType
 
         utils.model_restrictions._restriction_service = None
         ModelProviderRegistry.reset_for_testing()
+        # Re-register so the alias-aware lookup in ``is_allowed`` can resolve
+        # the allowed alias (``glm``) back to its canonical target (``glm-4.6``).
+        ModelProviderRegistry.register_provider(ProviderType.ZAI, ZAIModelProvider)
 
         provider = ZAIModelProvider("test-key")
         assert provider.validate_model_name("glm-4.6") is True

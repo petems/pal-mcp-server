@@ -86,7 +86,7 @@ def project_path(tmp_path):
 
 def _set_dummy_keys_if_missing():
     """Set dummy API keys only when they are completely absent."""
-    for var in ("GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY"):
+    for var in ("GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "ZAI_API_KEY"):
         if not os.environ.get(var):
             os.environ[var] = "dummy-key-for-tests"
 
