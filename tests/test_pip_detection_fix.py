@@ -145,6 +145,14 @@ class TestPipDetectionFix:
         assert "ZAI_API_KEY=zai-real-test-key" in env_content
         assert "ZAI_API_KEY=your_zai_api_key_here" not in env_content
 
+    def test_powershell_setup_wires_zai_key(self):
+        """Ensure Windows setup paths include Z.AI credentials."""
+        content = Path("./run-server.ps1").read_text()
+
+        assert '"ZAI_API_KEY"        = ".+"' in content
+        assert "ZAI_API_KEY=your_zai_api_key_here" in content
+        assert '"GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "ZAI_API_KEY"' in content
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
