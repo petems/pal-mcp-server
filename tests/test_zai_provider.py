@@ -13,8 +13,10 @@ ZAI_PLACEHOLDER_KEYS = {
     "dummy-key-for-tests",
     "dummy-key-for-replay",
     "your-zai-api-key",
+    "your-zai-api-key-here",
     "your_api_key",
     "zai_api_key",
+    "your_zai_api_key_here",
 }
 
 
@@ -84,7 +86,16 @@ class TestZAIProvider:
 
     @pytest.mark.parametrize(
         "api_key",
-        [None, "", "dummy-key-for-tests", "dummy-key-for-replay", "YOUR-ZAI-API-KEY", "ZAI_API_KEY"],
+        [
+            None,
+            "",
+            "dummy-key-for-tests",
+            "dummy-key-for-replay",
+            "YOUR-ZAI-API-KEY",
+            "your-zai-api-key-here",
+            "your_zai_api_key_here",
+            "ZAI_API_KEY",
+        ],
     )
     def test_placeholder_api_keys_are_not_treated_as_real_credentials(self, api_key):
         """Integration smoke tests should skip when only placeholders are configured."""
