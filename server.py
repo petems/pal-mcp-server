@@ -375,6 +375,21 @@ PROMPT_TEMPLATES = {
 }
 
 
+ZAI_API_KEY_PLACEHOLDERS = {
+    "your_zai_api_key_here",
+    "your-zai-api-key-here",
+}
+
+
+def _is_real_zai_api_key(api_key: str | None) -> bool:
+    """Return True when the configured Z.AI key is not a documented placeholder."""
+
+    if not api_key:
+        return False
+
+    return api_key.strip().lower() not in ZAI_API_KEY_PLACEHOLDERS
+
+
 def configure_providers():
     """
     Configure and validate AI providers based on available API keys.
@@ -466,7 +481,7 @@ def configure_providers():
 
     # Check for Z.AI API key
     zai_key = get_env("ZAI_API_KEY")
-    if zai_key and zai_key != "your_zai_api_key_here":
+    if _is_real_zai_api_key(zai_key):
         valid_providers.append("Z.AI (GLM)")
         has_native_apis = True
         logger.info("Z.AI API key found - GLM models available")
@@ -529,7 +544,7 @@ def configure_providers():
             ModelProviderRegistry.register_provider(ProviderType.XAI, XAIModelProvider)
             registered_providers.append(ProviderType.XAI.value)
             logger.debug(f"Registered provider: {ProviderType.XAI.value}")
-        if zai_key and zai_key != "your_zai_api_key_here":
+        if _is_real_zai_api_key(zai_key):
             ModelProviderRegistry.register_provider(ProviderType.ZAI, ZAIModelProvider)
             registered_providers.append(ProviderType.ZAI.value)
             logger.debug(f"Registered provider: {ProviderType.ZAI.value}")
