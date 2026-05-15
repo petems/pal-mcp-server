@@ -9,6 +9,22 @@ import pytest
 from providers.shared import ProviderType
 from providers.zai import ZAIModelProvider
 
+ZAI_PLACEHOLDER_KEYS = {
+    "dummy-key-for-tests",
+    "dummy-key-for-replay",
+    "your-zai-api-key",
+    "your_api_key",
+    "zai_api_key",
+}
+
+
+def _has_real_zai_api_key(api_key: str | None) -> bool:
+    if not api_key:
+        return False
+
+    return api_key.strip().lower() not in ZAI_PLACEHOLDER_KEYS
+
+
 # ---------------------------------------------------------------------------
 # Integration smoke tests (require ZAI_API_KEY or exercise auth-failure path)
 # ---------------------------------------------------------------------------
@@ -32,8 +48,8 @@ class TestZAIIntegration:
     def test_zai_basic_completion(self):
         """Basic completion smoke test -- skipped when ZAI_API_KEY is absent."""
         api_key = os.getenv("ZAI_API_KEY")
-        if not api_key:
-            pytest.skip("ZAI_API_KEY not set")
+        if not _has_real_zai_api_key(api_key):
+            pytest.skip("ZAI_API_KEY not set to a real credential")
 
         provider = ZAIModelProvider(api_key)
         result = provider.generate_content(
@@ -65,6 +81,18 @@ class TestZAIProvider:
         import utils.model_restrictions
 
         utils.model_restrictions._restriction_service = None
+
+    @pytest.mark.parametrize(
+        "api_key",
+        [None, "", "dummy-key-for-tests", "dummy-key-for-replay", "YOUR-ZAI-API-KEY", "ZAI_API_KEY"],
+    )
+    def test_placeholder_api_keys_are_not_treated_as_real_credentials(self, api_key):
+        """Integration smoke tests should skip when only placeholders are configured."""
+        assert _has_real_zai_api_key(api_key) is False
+
+    def test_non_placeholder_api_key_is_treated_as_real_credential(self):
+        """A non-placeholder key should allow the integration smoke test to run."""
+        assert _has_real_zai_api_key("zai-real-looking-key") is True
 
     def test_initialization(self):
         """Test provider initialization."""
