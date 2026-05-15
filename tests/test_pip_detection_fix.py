@@ -152,6 +152,10 @@ class TestPipDetectionFix:
         assert '"ZAI_API_KEY"        = ".+"' in content
         assert "ZAI_API_KEY=your_zai_api_key_here" in content
         assert '"GEMINI_API_KEY", "OPENAI_API_KEY", "XAI_API_KEY", "ZAI_API_KEY"' in content
+        assert (
+            '"OPENAI_ALLOWED_MODELS", "OPENROUTER_ALLOWED_MODELS", "XAI_ALLOWED_MODELS", "ZAI_ALLOWED_MODELS"'
+            in content
+        )
 
 
 if __name__ == "__main__":
