@@ -121,6 +121,9 @@ class TestZAIProvider:
         assert capabilities.supports_json_mode is True
         assert capabilities.supports_images is False
         assert capabilities.supports_temperature is True
+        assert capabilities.temperature_constraint.min_temp == 0.0
+        assert capabilities.temperature_constraint.max_temp == 1.0
+        assert capabilities.temperature_constraint.default_temp == 1.0
 
     def test_get_capabilities_with_shorthand(self):
         """Test getting model capabilities with shorthand aliases."""
@@ -253,6 +256,36 @@ class TestZAIProvider:
         assert provider.validate_model_name("glm") is True
         assert provider.validate_model_name("glm-4") is True
         assert provider.validate_model_name("glm4.6") is True
+
+    @patch("providers.openai_compatible.OpenAI")
+    def test_generate_content_clamps_temperature_to_zai_api_range(self, mock_openai_class):
+        """Z.AI API rejects temperatures above 1.0, so clamp before sending."""
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.choices[0].finish_reason = "stop"
+        mock_response.model = "glm-4.6"
+        mock_response.id = "test-id"
+        mock_response.created = 1234567890
+        mock_response.usage = MagicMock()
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_response.usage.total_tokens = 15
+        mock_client.chat.completions.create.return_value = mock_response
+
+        provider = ZAIModelProvider("test-key")
+
+        provider.generate_content(
+            prompt="Test prompt",
+            model_name="glm-4.6",
+            temperature=1.5,
+        )
+
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["temperature"] == 1.0
 
     @patch("providers.openai_compatible.OpenAI")
     def test_generate_content_resolves_alias_before_api_call(self, mock_openai_class):

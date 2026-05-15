@@ -14,6 +14,7 @@
       "supports_function_calling": "Whether the model supports function/tool calling",
       "supports_images": "Whether the model can process images/visual input",
       "supports_temperature": "Whether the model accepts temperature parameter in API calls",
+      "temperature_constraint": "Temperature constraint object. Z.AI chat completions require temperature in [0.0, 1.0].",
       "description": "Human-readable description of the model",
       "intelligence_score": "1-20 human rating used as the primary signal for auto-mode model ordering"
     },
@@ -43,7 +44,13 @@
       "supports_function_calling": true,
       "supports_json_mode": true,
       "supports_images": false,
-      "supports_temperature": true
+      "supports_temperature": true,
+      "temperature_constraint": {
+        "type": "range",
+        "min": 0.0,
+        "max": 1.0,
+        "default": 1.0
+      }
     }
   ]
 }
