@@ -286,6 +286,74 @@ class TestZAIProvider:
         assert provider.validate_model_name("glm4.6") is True
 
     @patch("providers.openai_compatible.OpenAI")
+    @pytest.mark.parametrize(
+        ("thinking_mode", "expected_type"),
+        [
+            ("minimal", "disabled"),
+            ("high", "enabled"),
+        ],
+    )
+    def test_generate_content_forwards_thinking_mode(self, mock_openai_class, thinking_mode, expected_type):
+        """Z.AI thinking modes must be forwarded through the OpenAI SDK body."""
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.choices[0].finish_reason = "stop"
+        mock_response.model = "glm-4.6"
+        mock_response.id = "test-id"
+        mock_response.created = 1234567890
+        mock_response.usage = MagicMock()
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_response.usage.total_tokens = 15
+        mock_client.chat.completions.create.return_value = mock_response
+
+        provider = ZAIModelProvider("test-key")
+
+        provider.generate_content(
+            prompt="Test prompt",
+            model_name="glm-4.6",
+            thinking_mode=thinking_mode,
+        )
+
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["extra_body"] == {"thinking": {"type": expected_type}}
+
+    @patch("providers.openai_compatible.OpenAI")
+    def test_generate_content_preserves_custom_extra_body(self, mock_openai_class):
+        """Caller-provided Z.AI extra body fields should be preserved."""
+        mock_client = MagicMock()
+        mock_openai_class.return_value = mock_client
+
+        mock_response = MagicMock()
+        mock_response.choices = [MagicMock()]
+        mock_response.choices[0].message.content = "Test response"
+        mock_response.choices[0].finish_reason = "stop"
+        mock_response.model = "glm-4.6"
+        mock_response.id = "test-id"
+        mock_response.created = 1234567890
+        mock_response.usage = MagicMock()
+        mock_response.usage.prompt_tokens = 10
+        mock_response.usage.completion_tokens = 5
+        mock_response.usage.total_tokens = 15
+        mock_client.chat.completions.create.return_value = mock_response
+
+        provider = ZAIModelProvider("test-key")
+
+        provider.generate_content(
+            prompt="Test prompt",
+            model_name="glm-4.6",
+            thinking_mode="high",
+            extra_body={"custom": True},
+        )
+
+        call_kwargs = mock_client.chat.completions.create.call_args[1]
+        assert call_kwargs["extra_body"] == {"custom": True, "thinking": {"type": "enabled"}}
+
+    @patch("providers.openai_compatible.OpenAI")
     def test_generate_content_clamps_temperature_to_zai_api_range(self, mock_openai_class):
         """Z.AI API rejects temperatures above 1.0, so clamp before sending."""
         mock_client = MagicMock()
